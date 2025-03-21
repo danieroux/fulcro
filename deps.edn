@@ -40,5 +40,18 @@
                                       org.immutant/web                  {:mvn/version "2.1.10"}
                                       org.clojure/tools.namespace       {:mvn/version "1.0.0"}}}
 
+           :with-flow-storm {:classpath-overrides {org.clojure/clojurescript nil} ;; disable the official compiler
+                             :extra-deps {thheller/shadow-cljs {:mvn/version "2.28.20"
+                                                                :exclusions [org.clojure/clojurescript]}
+                                          com.github.flow-storm/clojurescript {:mvn/version "1.11.132-9"}
+                                          com.github.flow-storm/flow-storm-inst {:mvn/version "4.2.2"}}
+                             :jvm-opts   ["-Dcljs.storm.instrumentOnlyPrefixes=com.fulcrologic"
+                                          "-Dcljs.storm.instrumentEnable=true"
+                                          "-Dflowstorm.startRecording=false"]}
+
+           :flow-storm-start-debugger {:extra-deps {com.github.flow-storm/flow-storm-dbg {:mvn/version "4.0.2"}}
+                                       ; Needs :port and :build-id from command-line
+                                       :exec-args  {:repl-type :shadow}}
+
            :build      {:deps       {io.github.seancorfield/build-clj {:tag "v0.6.7" :sha "22c2d09"}}
                         :ns-default build}}}
