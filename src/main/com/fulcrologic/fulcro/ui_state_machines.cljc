@@ -841,6 +841,8 @@
   "Mutation to begin a state machine. Use `begin!` instead."
   [{::keys [asm-id event-data] :as params}]
   (action [{:keys [app state] :as env}]
+    (when (get-in @state [::asm-id asm-id])
+      (log/error "Beginning an already running state machine. This breaks transition expectations, and behaviour is undefined: " asm-id))
     (swap! state (fn [s]
                    (-> s
                      (assoc-in [::asm-id asm-id] (new-asm params)))))
