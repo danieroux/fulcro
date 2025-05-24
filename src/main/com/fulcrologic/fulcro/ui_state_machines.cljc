@@ -904,11 +904,11 @@
    [(s/or :c rc/component-instance? :r ::fulcro-app) ::state-machine-definition ::asm-id (s/map-of ::actor-name any?) ::event-data => any?]
    (let [actors->idents          (derive-actor-idents actors)
          actors->component-names (derive-actor-components actors)]
-     (rc/transact! this [(begin {::asm-id                instance-id
-                                 ::state-machine-id      (::state-machine-id machine)
-                                 ::event-data            started-event-data
-                                 ::actor->component-name actors->component-names
-                                 ::actor->ident          actors->idents})]))))
+     (rc/transact!! this [(begin {::asm-id                instance-id
+                                  ::state-machine-id      (::state-machine-id machine)
+                                  ::event-data            started-event-data
+                                  ::actor->component-name actors->component-names
+                                  ::actor->ident          actors->idents})]))))
 
 #?(:clj
    (defmacro defstatemachine [name body]
