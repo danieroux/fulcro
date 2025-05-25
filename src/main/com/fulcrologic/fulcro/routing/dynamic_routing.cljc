@@ -399,6 +399,8 @@
     (-> (if immediate?
           (let [new-env (-> env
                           (uism/store :path-segment path-segment)
+                          ; If the `:ready!` event never gets called on a statemachine, the pending will remain
+                          (uism/store :pending-path-segment [])
                           (uism/apply-action apply-route* event-data)
                           (uism/activate :routed))]
             (when app
