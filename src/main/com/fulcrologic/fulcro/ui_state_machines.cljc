@@ -841,14 +841,17 @@
   "Mutation to begin a state machine. Use `begin!` instead."
   [{::keys [asm-id event-data] :as params}]
   (action [{:keys [app state] :as env}]
-    (swap! state (fn [s]
-                   (-> s
-                     (assoc-in [::asm-id asm-id] (new-asm params)))))
-    (trigger-state-machine-event! env (cond-> {::event-id   ::started
-                                               ::asm-id     asm-id
-                                               ::event-data {}}
-                                        event-data (assoc ::event-data event-data)))
-    (rapp/schedule-render! app)))
+    (if (get-in @state [::asm-id asm-id])
+      (log/warn "Not beginning an already running state machine. This would break transition expectations, and behaviour is undefined: " asm-id)
+      (do
+        (swap! state (fn [s]
+                       (-> s
+                         (assoc-in [::asm-id asm-id] (new-asm params)))))
+        (trigger-state-machine-event! env (cond-> {::event-id   ::started
+                                                   ::asm-id     asm-id
+                                                   ::event-data {}}
+                                            event-data (assoc ::event-data event-data)))
+        (rapp/schedule-render! app)))))
 
 (>defn derive-actor-idents
   "Generate an actor->ident map."
