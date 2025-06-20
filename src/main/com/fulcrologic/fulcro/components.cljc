@@ -740,6 +740,8 @@
      :cljs
      (apply react/createElement class props (force-children children))))
 
+(def !cached-props (atom {}))
+
 (defn factory
   "Create a factory constructor from a component class created with
    defsc."
@@ -747,25 +749,36 @@
   ([class {:keys [keyfn qualifier] :as opts}]
    (let [qid (query-id class qualifier)]
      (with-meta
-       (fn element-factory [props & children]
-         (let [key    (:react-key props)
-               key    (cond
-                        key key
-                        keyfn (keyfn props))
-               parent *parent*
-               app    #?(:cljs *app* :clj (or *app* {}))]
+       (fn element-factory [factory-props & children]
+         (let [key                     (:react-key factory-props)
+               key                     (cond
+                                         key key
+                                         keyfn (keyfn factory-props))
+               parent                  *parent*
+               app #?(:cljs *app* :clj (or *app* {}))]
            (if app
-             (let [ref              (:ref props)
+             (let [ref              (:ref factory-props)
                    ref              (cond-> ref (keyword? ref) str)
                    props-middleware (some-> app (ah/app-algorithm :props-middleware))
                    ;; Our data-readers.clj makes #js == identity in CLJ
-                   props            #js {:fulcro$value   props
+                   props            #js {:fulcro$value   factory-props
                                          :fulcro$queryid qid
                                          :fulcro$parent  parent
                                          :fulcro$app     app}
                    props            (if props-middleware
                                       (props-middleware class props)
-                                      props)]
+                                      props)
+                   cached-ident     [class qid]
+                   cached-props     (get @!cached-props cached-ident)
+                   props-to-use     (if (and
+                                          factory-props
+                                          (= (::props cached-props) factory-props))
+                                      (::js-props cached-props) ; Use the cached constructed props, nothing changed
+                                      (do
+                                        ; Cache these props for a possible next time
+                                        (swap! !cached-props assoc cached-ident {::props    factory-props
+                                                                                 ::js-props props})
+                                        props))]
                #?(:cljs
                   (do
                     (when key
@@ -787,7 +800,7 @@
                         (log/error "Props passed to" (component-name class) "are of the type"
                           (type->str (type (gobj/get props "fulcro$value")))
                           "instead of a map. Perhaps you meant to `map` the component over the props? See https://book.fulcrologic.com/#err-comp-props-not-a-map")))))
-               (create-element class props children))
+               (create-element class props-to-use children))
              (do
                (log/error
                  "A Fulcro component was rendered outside of a parent context. This probably means you are using a library that has you pass rendering code to it as a lambda. Use `with-parent-context` to fix this. See https://book.fulcrologic.com/#err-comp-rendered-outside-parent-ctx")
