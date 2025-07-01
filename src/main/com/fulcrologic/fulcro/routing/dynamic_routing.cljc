@@ -161,7 +161,7 @@
 (defn- check-ident-matches-expectation? [fn-name ident]
   (when (and #?(:clj false :cljs goog.DEBUG)
           *target-class*
-          (not (ident-matches-expectation? (rc/ident *target-class* {}) ident)))
+          (not (ident-matches-expectation? (rc/ident *target-class* (comp/get-initial-state *target-class*)) ident)))
     (log/error fn-name " was invoked with the ident " ident
       " which doesn't seem to match the ident of the wrapping component (class "
       *target-class* " , ident ["
