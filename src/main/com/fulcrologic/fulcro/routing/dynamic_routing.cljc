@@ -908,7 +908,7 @@
                                                            `(rc/get-initial-state ~(first router-targets) ~'params)))
            initial-state-map      (into base-initial-state
                                     (map-indexed
-                                      (fn [idx s] [(alt-key idx) `(rc/get-initial-state ~s {})])
+                                      (fn [idx s] [(alt-key idx) `(rc/get-initial-state ~s ~'params)])
                                       (rest router-targets)))
            ident-method           (apply list `(fn [] [::id ~id]))
            initial-state-lambda   (apply list `(fn [~'params] ~initial-state-map))
@@ -1282,7 +1282,7 @@
                                      (into
                                        {::id            router-registry-key
                                         ::current-route (rc/get-initial-state (first router-targets) params)}
-                                       (map-indexed (fn [idx c] [(alt-key idx) (rc/get-initial-state c {})]))
+                                       (map-indexed (fn [idx c] [(alt-key idx) (rc/get-initial-state c params)]))
                                        (rest router-targets)))
           :query                   (fn [_] static-query)})
        (fn [this {::keys [current-route] :as props}]
