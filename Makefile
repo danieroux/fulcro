@@ -18,3 +18,11 @@ deploy:
 check-clj-doc:
 	clojure -T:build jar
 	clojure -T:check-clj-doc analyze-local
+
+playwright-install-chromium:
+	npx playwright install chromium
+
+playwright-run-tests:
+	@echo "Only one test right now, especially to trip a router bug"
+	@echo "Expects that 'make playwright-install-chromium' has been run"
+	npx playwright test src/playwright-test/router-bug-test.spec.js --headed --timeout 0 --trace retain-on-failure

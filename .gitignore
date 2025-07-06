@@ -62,3 +62,5 @@ resources/public/workspaces
 lsp
 .clj-kondo/com.wsscode
 .clj-kondo
+
+test-results/
